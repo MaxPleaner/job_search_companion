@@ -4,8 +4,21 @@ require 'awesome_print'
 require 'byebug'
 require 'terminfo'
 require 'active_support/all'
+require 'data_mapper'
+require 'launchy'
 
 require_relative './patches.rb'
+
+def build_absolute_path(relative_path) # don't include './' in the relative path
+  "#{File.expand_path('.')}/#{relative_path}"
+end
+
+db_path = build_absolute_path("app.sqlite")
+DataMapper.setup(:default, "sqlite3://#{db_path}")
+
+# DataMapper.setup(:default, 'sqlite://app.db')
+
+require './models.rb'
 
 class App
 end
@@ -13,46 +26,6 @@ end
 require_relative "./app/google.rb"
 require_relative "./app/installers.rb"
 
-module App::Helpers
-
-  def last_results
-    @last_results ||= {}
-  end
-
-  def install_googler
-    puts installers::Google.new
-  end
-
-  def search_google(term)
-    width = screen_width
-    google::Search.new(term).results.tap do |results|
-      (results.length-1).downto(0).each do |idx|
-        hit = results[idx]
-        last_results[idx] = result = google_hit.new(hit)
-        puts "
-          (#{idx.to_s.red})
-
-          #{result.title.green}
-          #{result.url.blue}
-          #{result.abstract.chomp}
-        ".lchomp.chomp.strip_heredoc
-      end
-    end
-    nil
-  end
-
-  def select_result(idx)
-  end
-
-  private
-
-  def installers; App::Installers; end
-  def google; App::Google; end
-  def screen_width; TermInfo.screen_width; end
-  def google_hit; App::Google::Hit; end
-
-end
-
 def load_helpers
-  include App::Helpers
+  include App::Google::Helpers
 end

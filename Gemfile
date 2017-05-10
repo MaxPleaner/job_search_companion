@@ -19,3 +19,9 @@ gem "json"
 gem "ruby-terminfo"
 
 gem "activesupport"
+
+gem "datamapper"
+
+gem "dm-sqlite-adapter"
+
+gem "launchy"
