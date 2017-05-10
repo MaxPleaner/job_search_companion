@@ -8,14 +8,12 @@ end
 
 class App::Installers::Google
 
-  def initialize(silent: false)
-    str = "
+  def initialize 
+    "
       sudo add-apt-repository ppa:twodopeshaggy/jarun
       sudo apt-get update
       sudo apt-get install googler
     "
-    puts str unless silent
-    str
   end
 
 end

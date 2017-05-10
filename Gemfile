@@ -13,3 +13,9 @@ gem "byebug"
 gem "awesome_print"
 
 gem "dotenv"
+
+gem "json"
+
+gem "ruby-terminfo"
+
+gem "activesupport"
