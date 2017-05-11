@@ -25,3 +25,5 @@ gem "datamapper"
 gem "dm-sqlite-adapter"
 
 gem "launchy"
+
+gem "pru"

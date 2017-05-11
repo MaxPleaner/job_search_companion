@@ -33,8 +33,10 @@ class Page
     through: :page_linkbacks,
     via: :page
 
-  def self.create_from_google_hit(hit)
-    create url: hit.url, title: hit.title, abstract: hit.abstract
+  def self.create_from_google_hit(hit, custom_attrs={})
+    create({
+      url: hit.url, title: hit.title, abstract: hit.abstract
+    }.merge custom_attrs)
   end
 
   def self.by_tag(name)
