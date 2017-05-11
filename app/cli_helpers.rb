@@ -1,8 +1,6 @@
 module App::CliHelpers
 
-  # --------------------------------------------------
-  # Methods with return value (and possibly side effects)
-  # --------------------------------------------------
+  include App::ConstGetters
 
   def results
     @results ||= {}
@@ -24,7 +22,7 @@ module App::CliHelpers
 
   def save(custom_attrs={})
     new_page = Page.create_from_google_hit get_selected, custom_attrs
-    update_selected!(selected_idx, new_page)
+    update_selected(selected_idx, new_page)
     new_page
   end
 
@@ -59,13 +57,13 @@ module App::CliHelpers
         update_results identifier, linked_page
       end
     when :url
-      Page.create(url: identifier)
+      Page.first_or_create(url: identifier)
     when :title
-      Page.create(title: identifier)
+      Page.first_or_create(title: identifier)
     end
     raise(RuntimeError, "page not found") unless page
     reload_after do
-      PageLink.create(
+      PageLink.first_or_create(
         linked_id: page.id,
         page_id: get_selected_id
       )
@@ -82,15 +80,14 @@ module App::CliHelpers
     get_selected.linkbacks
   end
 
-  # --------------------------------------------------
-  # Methods with no return value, just side effects
-  # --------------------------------------------------
-
-  def install!
-    puts installers::Google.new
+  def install(type=nil)
+    installers.all.tap do |installers|
+      selected = type ? { type: installers[type] } : installers
+      selected.values.map(&:get_script).each &method(:puts)
+    end
   end
 
-  def search!(term)
+  def google_search(term)
     width = screen_width
     google::Search.new(term).results.tap do |search_results|
       (search_results.length-1).downto(0).each do |idx|
@@ -103,14 +100,14 @@ module App::CliHelpers
     nil    
   end
 
-  def pick!(idx)
+  def pick(idx)
     puts "selected: ##{idx}\n".yellow
     @selected_idx = idx
     @selected = results[idx]
     unless @selected.id
       existing_record = Page.first(url: @selected.url)
       if existing_record
-        update_selected!(idx, existing_record)
+        update_selected(idx, existing_record)
       end
     end 
     puts display_result(@selected, idx)
@@ -119,8 +116,9 @@ module App::CliHelpers
   end
 
   def chrome(url=nil)
-    url ||= get_selected.url
-    Launchy.open url: url
+    browser.new.tap do |window|
+      window.open url || get_selected.url
+    end
   end
 
   def lynx(url=nil)
@@ -130,6 +128,10 @@ module App::CliHelpers
       gnome-terminal -e "#{cmd}"
     }
     Process.detach pid
+  end
+
+  def search_angel_list(term)
+    angel_list.new.login.search term
   end
 
   # --------------------------------------------------
@@ -158,7 +160,7 @@ module App::CliHelpers
     blk.call.tap { selected.reload }
   end
 
-  def update_selected!(idx, page)
+  def update_selected(idx, page)
     @selected_idx = idx
     update_results idx, page
     @selected = page
@@ -175,7 +177,7 @@ module App::CliHelpers
 
   def require_persisted
     raise(RuntimeError,
-      "page not persisted. call save! first"
+      "page not persisted. call save first"
     ) unless get_selected&.id
   end
 
@@ -205,11 +207,5 @@ module App::CliHelpers
 #{result.tags.map(&:name).join("\n")}
     ".lchomp.chomp.strip_heredoc
   end
-
-
-  def installers; App::Installers; end
-  def google; App::Google; end
-  def screen_width; TermInfo.screen_width; end
-  def google_hit; App::Google::Hit; end  
 
 end

@@ -6,7 +6,7 @@ class App::TextDocument
     @path = path
   end
 
-  def create!
+  def create
     if File.exists?(path)
       raise(RuntimeError, "#{path} already exists")
     end
@@ -20,7 +20,7 @@ class App::TextDocument
     File.read path
   end
 
-  def write!(text)
+  def write(text)
     if File.exists?(path)
       raise(RuntimeError, "#{path} already exists (use append)")
     end

@@ -8,4 +8,32 @@ class String
       self.dup
     end
   end
+
+end
+
+class Hash
+  
+  def map_values(&blk)
+    # blk is passed and returns a val
+    reduce({}) do |memo, (key, val)|
+      memo.tap { memo[key] = blk.call(val) }
+    end
+  end
+  
+  def map_keys(&blk)
+    # blk is passed and returns a key
+    reduce({}) do |memo, (key, val)|
+      memo.tap { memo[blk.call key] = val }
+    end
+  end
+
+  def map_keyvals(&blk)git
+    # blk is passed key/val and returns [key, val]
+    reduce({}) do |memo, (key, val)|
+    end
+  end
+
+end
+
+class Hash
 end
