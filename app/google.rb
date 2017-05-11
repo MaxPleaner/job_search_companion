@@ -14,21 +14,46 @@ class App::Google::NewsSearch
 end
 
 class App::Google::Hit
+
+  include App::Formatter
+
+  def inspect
+    format_attrs(attributes, %i{title})
+  end
+
   attr_accessor :abstract, :title, :url
+
+  # indicates that this is not a DB record
+  def id; nil; end
+  def peristed?; false; end
+
   def initialize(hit)
     @abstract, @title, @url = hit.with_indifferent_access.values_at(
       :abstract, :title, :url
     )
   end
-  def comments
-    Comment.all(url: url)
+
+  def attributes
+    {
+      abstract: abstract,
+      title: title,
+      url: url,
+      comments: comments,
+      tags: tags,
+      linked: linked,
+      linkbacks: linkbacks
+    }
   end
-  def tags
-    Tag.all(url: url)
-  end
+
   def page
-    Page.first(url: url)
+    Page.first(url: url) || raise(RuntimeError, "page not saved")
   end
+
+  def comments; page.comments; end
+  def tags; page.tags; end
+  def linked; page.linked; end
+  def linkbacks; page.linkbacks; end
+
 end
 
 module App::Google::Helpers
@@ -45,18 +70,74 @@ module App::Google::Helpers
     @selected
   end
 
-  def comment(content, url=nil)
-    url ||= get_selected.url
-    Comment.create url: url, content: content
+  def selected_idx
+    @selected_idx
+  end
+
+  def comment(content)
+    reload_after do
+      Comment.create(page_id: get_selected_id, content: content)
+    end
   end
 
   def save
-    Page.create_from_google_hit get_selected
+    new_page = Page.create_from_google_hit get_selected
+    update_selected!(selected_idx, new_page)
+    new_page
   end
 
-  def tag(name, url=nil)
-    url ||= get_selected.url
-    Tag.create url: url, name: name
+  def tag(name)
+    reload_after do
+      Tag.create(page_id: get_selected_id, name: name)
+    end
+  end
+
+  def tags
+    require_persisted
+    get_selected.tags
+  end
+
+  def comments
+    require_persisted
+    get_selected.comments
+  end
+
+  def link(type, identifier)
+    page = case type
+    when :id
+      Page.first(id: identifier)
+    when :idx
+      found_page = results[identifier]
+      linked_page = if found_page.id
+        found_page
+      else
+        Page.create_from_google_hit found_page
+      end
+      linked_page.tap do
+        update_results identifier, linked_page
+      end
+    when :url
+      Page.create(url: identifier)
+    when :title
+      Page.create(title: identifier)
+    end
+    raise(RuntimeError, "page not found") unless page
+    reload_after do
+      PageLink.create(
+        linked_id: page.id,
+        page_id: get_selected_id
+      )
+    end
+  end
+
+  def linked
+    require_persisted
+    get_selected.linked
+  end
+
+  def linkbacks
+    require_persisted
+    get_selected.linkbacks
   end
 
   # --------------------------------------------------
@@ -82,7 +163,14 @@ module App::Google::Helpers
 
   def pick!(idx)
     puts "selected: ##{idx}\n".yellow
+    @selected_idx = idx
     @selected = results[idx]
+    unless @selected.id
+      existing_record = Page.first(url: @selected.url)
+      if existing_record
+        update_selected!(idx, existing_record)
+      end
+    end 
     puts display_result(@selected, idx)
     puts display_selected_result(@selected, idx)
     puts selection_options 
@@ -90,7 +178,7 @@ module App::Google::Helpers
 
   def open!(url=nil)
     url ||= get_selected.url
-    Launchy open url: url
+    Launchy.open url: url
   end
 
   # --------------------------------------------------
@@ -99,9 +187,49 @@ module App::Google::Helpers
 
   private
 
+  def selection_options
+    "
+      #{"The following commands can be used with the selection:".yellow}
+      #{"open!".green}
+      #{"save".green}
+      #{"comment".green}
+      #{"comments".green}
+      #{"tag".green}
+      #{"tags".green}
+      #{"link".green}
+      #{"linked".green}
+      #{"linkbacks".green}
+    ".lchomp.chomp.strip_heredoc
+  end
+
+  def reload_after(&blk)
+    blk.call.tap { selected.reload }
+  end
+
+  def update_selected!(idx, page)
+    @selected_idx = idx
+    update_results idx, page
+    @selected = page
+  end
+
+  def update_results(idx, page)
+    results[idx] = page
+  end
+
   def get_selected
     return @selected if @selected
     raise RuntimeError, "no selected link".red
+  end
+
+  def require_persisted
+    raise(RuntimeError,
+      "page not persisted. call save! first"
+    ) unless get_selected&.id
+  end
+
+  def get_selected_id
+    require_persisted
+    get_selected.id
   end
 
   def display_result(result, idx)
@@ -115,27 +243,17 @@ module App::Google::Helpers
   end
 
   def display_selected_result(result, idx)
-    comments = result.comments
-    tags = result.tags
-    "
-      #{"Comments:".yellow}
-      #{comments.map(&:content).join("\n")}
-      
-      #{"Tags:".yellow}
-      #{result.tags.map(&:name).join("\n")}
-    ".lchomp.chomp.strip_heredoc
     # includes a little more detail
+    return "" unless @selected&.id
+    "
+#{"Comments:".yellow}
+#{result.comments.map(&:content).join("\n")}
+
+#{"Tags:".yellow}
+#{result.tags.map(&:name).join("\n")}
+    ".lchomp.chomp.strip_heredoc
   end
 
-  def selection_options
-    "
-      #{"The following commands can be used with the selection:".yellow}
-      #{"open!".green}
-      #{"comment".green}
-      #{"save".green}
-      #{"tag".green}
-    ".lchomp.chomp.strip_heredoc
-  end
 
   def installers; App::Installers; end
   def google; App::Google; end
