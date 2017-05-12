@@ -2,6 +2,8 @@ module App::CliHelpers
 
   include App::ConstGetters
 
+  include App::PID
+
   def results
     @results ||= {}
   end

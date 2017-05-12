@@ -26,6 +26,7 @@ DataMapper.setup(:default, "sqlite3://#{db_path}")
 class App
 end
 
+require './app/pid.rb'
 require './app/const_getters.rb'
 require './app/formatter.rb'
 require './app/text_document.rb'
@@ -37,21 +38,19 @@ require_relative "./app/google.rb"
 require_relative "./app/cli_helpers.rb"
 require_relative "./app/installers.rb"
 
+require './app/tests.rb'
+
 def load_helpers
   include App::CliHelpers
 end
 
 def autotest
-  # search "foo"
-  # pick 0
-  
-  # page = chrome "http://angel.co/login"
-  # input = page.css "#user_email"
-  # input.send_keys "foo"
-  # input.attribute "value"
-
-  search_angel_list "ruby"
+  tests = App::Tests
+  # tests.google_search
+  # tests.selenium_form
+  tests.get_jobs_from_angellist
 rescue => e
   puts e
+  puts e.message
   puts e.backtrace
 end

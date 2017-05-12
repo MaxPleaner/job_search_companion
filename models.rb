@@ -1,3 +1,38 @@
+class Job
+  include App::Formatter
+  def inspect
+    format_attrs(attributes, %i{id title category})
+  end
+  include DataMapper::Resource
+  property :id, Serial
+  property :title, String
+  property :details, Text
+  property :category, String
+  property :status, String
+
+  has n, :job_links, 'JobLink',
+    child_key: [:job_id],
+    parent_key: [:id]
+
+  has n, :pages, 'Page',
+    through: :job_links,
+    via: :page
+end
+
+class JobLink
+  include App::Formatter
+  def inspect
+    format_attrs(attributes, %i{id})
+  end
+  include DataMapper::Resource
+  property :id, Serial
+  property :page_id, Integer
+  property :job_id, Integer
+
+  belongs_to :page
+  belongs_to :job
+end
+
 class Page
 
   include App::Formatter
@@ -16,6 +51,10 @@ class Page
 
   has n, :tags
   has n, :comments
+
+  has n, :job_links, 'JobLink',
+    parent_key: [:id],
+    child_key: [:page_id]
 
   has n, :page_links, 'PageLink',
     parent_key: [:id],

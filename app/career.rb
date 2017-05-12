@@ -24,6 +24,7 @@ end
 
 class App::Career::JobSearchEngine::AngelList
   include App::ConstGetters
+  include App::PID
 
   attr_reader :window
   def initialize
@@ -33,41 +34,55 @@ class App::Career::JobSearchEngine::AngelList
   end
 
   def login
-    form = window.css("#new_user")
-    email_input = form.css("#user_email")[0]
-    password_input = form.css("#user_password")[0]
+    form = window.css("#new_user")[0]
+    email_input = form.find_element(css: "#user_email")
+    password_input = form.find_element(css: "#user_password")
     email_input.send_keys @email
     password_input.send_keys @password
     form.submit
     self
   end
 
-  def search(*keywords, locations: nil)
+  def search(keyword, locations: nil)
     locations ||= ["151282-San Francisco Bay Area, CA"]
     query = CGI.escape({
         "locations" => locations,
-        "keywords" => keywords
+        "keywords" => [keyword],
     }.to_json)
     url = "https://angel.co/jobs#find/f!#{query}"
     window.open url
-    spam_infinite_scroll
-    read_results
+    spam_infinite_scroll do
+      process_results(keyword)
+    end
   end
 
   private
 
-  def spam_infinite_scroll(scroll_height: 9000)
+  def spam_infinite_scroll(scroll_height: 9000, &callback)
     idx = 0
-    until window.elem_exists? ".end_notice"
-      window.script "scrollTo(0, #{scroll_height * (idx + 1)})"
-      idx += 1
+    in_new_thread do |pid|
+      puts "ANGEL LIST INFINITE SCROLL PID: #{pid}".green
+      loop do
+        break if window.elem_exists? ".end_notice"
+        break if pid_closed?(pid)
+        window.script "scrollTo(0, #{scroll_height * (idx + 1)})"
+        idx += 1
+      end
+      callback.call
     end
   end
 
-  def read_results
-    byebug
-    false
-    # .header-info
+  def process_results(keyword)
+    text_blocks = window.css(".header-info").map(&:text)
+    text_blocks.map do |text|
+      Job.create(
+        category: keyword,
+        title: text.match(/(.+)\n/)[1],
+        details: text
+      )
+    end.tap do |jobs|
+      puts "created #{jobs.length} jobs"
+    end
   end
 
 end
