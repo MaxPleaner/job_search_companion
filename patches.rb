@@ -1,3 +1,11 @@
+
+# This is present in ruby 2.5 or newer, and backported here
+module Kernel
+  def yield_itself(&blk)
+    blk.call self
+  end
+end
+
 class String
 
   # facets

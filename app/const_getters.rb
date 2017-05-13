@@ -5,4 +5,5 @@ module App::ConstGetters
   def google_hit; App::Google::Hit; end  
   def browser; App::Browser; end
   def angel_list; App::Career::JobSearchEngine::AngelList; end
+  def crunchbase; App::Career::JobSearchEngine::Crunchbase; end
 end

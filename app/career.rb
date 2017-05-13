@@ -4,6 +4,7 @@ end
 class App::Career::JobSearch
 end
 
+
 class App::Career::JobSearchEngine
 
   attr_reader :search_engine
@@ -98,7 +99,63 @@ class App::Career::JobSearchEngine::WhosHiring
 end
 
 class App::Career::JobSearchEngine::Crunchbase
-  def search(query)
+
+  include App::ConstGetters
+
+  attr_reader :window
+
+  def initialize
+  end
+
+  # the same as #search but selects the first result instead
+  # of prompting for selection
+  def search!(query)
+    search(query, select_first: true)
+  end
+
+  def search(query, select_first: false)
+    url = "https://www.crunchbase.com/app/search?query=#{URI.escape query}"
+    @window = browser.new.open url
+    if window.elem_exists?("[aria-label='Proceed Anyway']")
+      btn = window.css("[aria-label='Proceed Anyway']")[0]
+      btn.click
+    end
+    if window.elem_exists? "[md-svg-icon='search']"
+      window.css("[md-svg-icon='search']")[0].click
+    end
+    input = window.css("[aria-label^='Look up a specific company']").last
+    input.send_keys "#{query}\n"
+    get_results(select_first: select_first)
+    window.close
+  end
+
+  private
+
+  def get_results(select_first: false)
+    results = window.wait.until do
+      hits = window.css(".cb-overflow-ellipsis").reject do |hit|
+        hit.text.blank? || hit.text.in?([
+          'Companies', 'Headquarters Location',
+          'Company Name', 'Category Groups',
+          'Headquarters', 'Description',
+          'Crunchbase Rank'
+        ])
+      end
+      hits unless hits.empty?
+    end
+    result = if select_first
+      results[0]
+    else
+      (results.length-1).downto(0).each do |i|
+        puts "#{i}: #{results[i].text}"
+      end
+      puts "which result to select? (enter index) "
+      num = gets.chomp.to_i
+      results[num]
+    end
+    result.click
+    window.switch_to_tab(-1)
+    window.display_tmp_screenshot
   end
 end
 

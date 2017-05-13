@@ -123,17 +123,36 @@ module App::CliHelpers
     end
   end
 
-  def lynx(url=nil)
+  def lynx(url=nil, useragent: "la policia L_y_n_x")
+    lynx_config_file = ENV.fetch "LynxConfigFile", nil
+    config_cmd = lynx_config_file ? "-cfg=#{lynx_config_file}" : ""
     url ||= get_selected.url
-    cmd = %{lynx '#{url}'}
+    byebug
+    ssl_config = "SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt"
+    cmd = %{
+      lynx \
+      -useragent='#{useragent}' \
+      #{config_cmd} \
+      '#{url}'
+    }
     pid = spawn %{
-      gnome-terminal -e "#{cmd}"
+      #{ssl_config} gnome-terminal -e "#{cmd}"
     }
     Process.detach pid
   end
 
   def search_angel_list(term)
     angel_list.new.login.search term
+  end
+
+  # Displays first result
+  def search_crunchbase! term
+    crunchbase.new.search! term
+  end
+
+  # Displays index of potential results and prompts for selection
+  def search_crunchbase term
+    crunchbase.new.search term
   end
 
   # --------------------------------------------------

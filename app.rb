@@ -48,7 +48,7 @@ def autotest
   tests = App::Tests
   # tests.google_search
   # tests.selenium_form
-  tests.get_jobs_from_angellist
+  # tests.get_jobs_from_angellist
 rescue => e
   puts e
   puts e.message
