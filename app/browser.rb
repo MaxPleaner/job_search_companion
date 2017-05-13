@@ -14,8 +14,38 @@ class App::Browser
     driver.switch_to.window driver.window_handles[index]
   end
 
+  def get_page_width
+    script <<-JS
+      return Math.max(
+        document.body.scrollWidth,
+        document.body.offsetWidth,
+        document.documentElement.clientWidth,
+        document.documentElement.scrollWidth,
+        document.documentElement.offsetWidth
+      );
+    JS
+  end
+
+  def get_page_height
+    script <<-JS
+      return Math.max(
+        document.body.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.clientHeight,
+        document.documentElement.scrollHeight,
+        document.documentElement.offsetHeight
+      );
+    JS
+  end
+
+  def get_page_dimensions
+    [get_page_width, get_page_height]
+  end
+
   def display_tmp_screenshot
     path = Tempfile.create.tap(&:close).path
+    width, height = get_page_dimensions
+    driver.manage.window.resize_to(width + 100, height + 100)
     driver.save_screenshot path
     Launchy.open path
   end
