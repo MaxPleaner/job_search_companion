@@ -18,6 +18,7 @@ GEM
     coderay (1.1.1)
     colored (1.2)
     concurrent-ruby (1.0.5)
+    curb (0.9.3)
     data_objects (0.10.17)
       addressable (~> 2.1)
     datamapper (1.2.0)
@@ -69,6 +70,7 @@ GEM
     dotenv (2.2.1)
     fastercsv (1.5.5)
     ffi (1.9.18)
+    headless (2.3.1)
     i18n (0.8.1)
     json (1.8.6)
     json_pure (1.8.6)
@@ -78,7 +80,6 @@ GEM
     minitest (5.10.2)
     multi_json (1.12.1)
     mustermann (1.0.0)
-    pru (0.2.0)
     pry (0.10.4)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -119,12 +120,13 @@ DEPENDENCIES
   awesome_print
   byebug
   colored
+  curb
   datamapper
   dm-sqlite-adapter
   dotenv
+  headless
   json
   launchy
-  pru
   pry
   ruby-terminfo
   selenium-webdriver

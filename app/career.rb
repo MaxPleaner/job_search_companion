@@ -1,4 +1,13 @@
 class App::Career
+  def self.apply_to_jobs
+    while job = get_job_suggestion
+      puts job
+      puts job.abstract.blue
+    end
+  end
+
+  def self.get_job_suggestion
+  end
 end
 
 class App::Career::JobSearch
@@ -114,19 +123,23 @@ class App::Career::JobSearchEngine::Crunchbase
   end
 
   def search(query, select_first: false)
-    url = "https://www.crunchbase.com/app/search?query=#{URI.escape query}"
-    @window = browser.new.open url
-    if window.elem_exists?("[aria-label='Proceed Anyway']")
-      btn = window.css("[aria-label='Proceed Anyway']")[0]
-      btn.click
+    img_path = nil
+    Headless.ly do
+      url = "https://www.crunchbase.com/app/search?query=#{URI.escape query}"
+      @window = browser.new.open url
+      if window.elem_exists?("[aria-label='Proceed Anyway']")
+        btn = window.css("[aria-label='Proceed Anyway']")[0]
+        btn.click
+      end
+      if window.elem_exists? "[md-svg-icon='search']"
+        window.css("[md-svg-icon='search']")[0].click
+      end
+      input = window.css("[aria-label^='Look up a specific company']").last
+      input.send_keys "#{query}\n"
+      img_path = get_results(select_first: select_first)
+      window.close_all
     end
-    if window.elem_exists? "[md-svg-icon='search']"
-      window.css("[md-svg-icon='search']")[0].click
-    end
-    input = window.css("[aria-label^='Look up a specific company']").last
-    input.send_keys "#{query}\n"
-    get_results(select_first: select_first)
-    window.close
+    img_path
   end
 
   private
@@ -155,7 +168,7 @@ class App::Career::JobSearchEngine::Crunchbase
     end
     result.click
     window.switch_to_tab(-1)
-    window.display_tmp_screenshot
+    window.tmp_screenshot_path
   end
 end
 

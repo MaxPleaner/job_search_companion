@@ -26,8 +26,8 @@ gem "dm-sqlite-adapter"
 
 gem "launchy"
 
-gem "pru"
-
 gem 'selenium-webdriver'
 
-gem "dotenv"
+gem "headless"
+
+gem "curb"

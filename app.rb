@@ -10,6 +10,9 @@ require 'pru'
 require 'selenium-webdriver'
 require 'dotenv'
 require 'yaml/store'
+require 'headless'
+require 'curb'
+require 'selenium/webdriver/remote/http/curb'
 
 Dotenv.load
 

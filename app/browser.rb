@@ -3,11 +3,19 @@ class App::Browser
   attr_reader :driver
 
   def initialize
-    @driver = Selenium::WebDriver.for :chrome
+    @driver = Selenium::WebDriver.for :chrome,
+      http_client: Selenium::WebDriver::Remote::Http::Curb.new
   end
 
   def close
     driver.close
+  end
+
+  def close_all
+    driver.window_handles.each do
+      switch_to_tab 0
+      close
+    end
   end
 
   def switch_to_tab(index)
@@ -42,12 +50,12 @@ class App::Browser
     [get_page_width, get_page_height]
   end
 
-  def display_tmp_screenshot
+  def tmp_screenshot_path
     path = Tempfile.create.tap(&:close).path
     width, height = get_page_dimensions
-    driver.manage.window.resize_to(width + 100, height + 100)
+    driver.manage.window.resize_to(width, height)
     driver.save_screenshot path
-    Launchy.open path
+    path
   end
 
   def send_jquery
@@ -82,7 +90,7 @@ class App::Browser
 
   # this shouldn't be used to check if an element exists; the timeout is too long
   # for that, use elem_exists?
-  def wait(timeout: 3)
+  def wait(timeout: 6)
     Selenium::WebDriver::Wait.new(:timeout => timeout)
   end
 
