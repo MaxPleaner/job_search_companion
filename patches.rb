@@ -6,20 +6,6 @@ module Kernel
   end
 end
 
-module DataMapper::Resource
-
-  # make valid? print something when it fails
-  # disabled via the SilentMode env var
-  def valid?(*args)
-    result = super(*args)
-    unless result
-      log errors.full_messages.join(", "), :red
-    end
-    result
-  end
-
-end
-
 class String
 
   # facets

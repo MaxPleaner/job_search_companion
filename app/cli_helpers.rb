@@ -172,6 +172,14 @@ module App::CliHelpers
     )
   end
 
+  def search_whos_hiring(query, location: "san francisco", async: true, headless: true)
+    whos_hiring.new.search(query,
+      location: location,
+      async: async,
+      headless: headless
+    )
+  end
+
   # --------------------------------------------------
   # Private stuff
   # --------------------------------------------------

@@ -1,12 +1,26 @@
+def add_patch_for_valid(klass)
+  klass.class_exec do
+    # make valid? print something when it fails
+    # disabled via the SilentMode env var
+    def valid?(*args)
+      result = super(*args)
+      unless result
+        log errors.full_messages.join(", "), :red
+      end
+      result
+    end
+  end
+end
+
 class Job
+  include DataMapper::Resource
+  add_patch_for_valid(self)
   include App::Formatter
   def inspect
     format_attrs(attributes, %i{id title category})
   end
-
-  include DataMapper::Resource
   property :id, Serial
-  property :title, String, unique: true
+  property :title, String, unique: [:details], required: true
   property :details, Text
   property :category, String
   property :status, String
@@ -20,13 +34,14 @@ class Job
     through: :job_links,
     via: :page
 end
-
+ 
 class JobLink
   include App::Formatter
   def inspect
     format_attrs(attributes, %i{id})
   end
   include DataMapper::Resource
+  add_patch_for_valid(self)
   property :id, Serial
   property :page_id, Integer
   property :job_id, Integer
@@ -44,6 +59,7 @@ class Page
   end
 
   include DataMapper::Resource
+  add_patch_for_valid(self)
 
   property :id,         Serial
   property :url,      String
@@ -95,6 +111,7 @@ class Tag
   end
 
   include DataMapper::Resource
+  add_patch_for_valid(self)
 
   property :id,         Serial
   property :page_id,      Integer
@@ -114,6 +131,7 @@ class Comment
   end
 
   include DataMapper::Resource
+  add_patch_for_valid(self)
   property :id,         Serial
   property :page_id,      Integer
   property :content,       String
@@ -132,6 +150,7 @@ class PageLink
   end
 
   include DataMapper::Resource
+  add_patch_for_valid(self)
   property :id, Serial
   property :page_id, Integer
   property :linked_id, Integer
