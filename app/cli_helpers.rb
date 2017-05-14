@@ -146,13 +146,13 @@ module App::CliHelpers
   end
 
   # Displays first result
-  def search_crunchbase! term
-    crunchbase.new.search! term
+  def search_crunchbase term
+    crunchbase.new.search term
   end
 
   # Displays index of potential results and prompts for selection
-  def search_crunchbase term
-    crunchbase.new.search term
+  def search_crunchbase_sync term
+    crunchbase.new.search_sync term
   end
 
   # --------------------------------------------------

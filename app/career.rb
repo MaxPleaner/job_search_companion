@@ -40,12 +40,10 @@ class App::Career::JobSearchEngine::AngelList
     @password = ENV.fetch("AngelListPassword")
   end
 
-  def search(keyword, locations: nil, &callback)
+  def search(keyword, locations: nil, headless: true, async: true, &callback)
     log 'starting new thread and headless browser'
-    in_new_thread do |pid|
-      @pid = pid
-      log "ANGEL LIST SEARCH PID: #{pid}".green
-      Headless.ly do
+    async_fn = Proc.new do
+      browser_fn = Proc.new do
         log "opening angel.co"
         @window = browser.new.open "http://angel.co/login"
         login
@@ -57,12 +55,27 @@ class App::Career::JobSearchEngine::AngelList
         log "entering query"
         url = "https://angel.co/jobs#find/f!#{query}"
         window.open url
-        log "looping over infinite scroll; use remove_pid('#{pid}') to stop if it doesn't end"
+        log "looping over infinite scroll"
         spam_infinite_scroll do
           process_results(keyword)
           callback&.call
         end
       end
+      if headless
+        Headless.ly { browser_fn.call }
+      else
+        browser_fn.call
+      end
+    end
+    if async
+      in_new_thread do |pid|
+        @pid = pid
+        log "ANGEL LIST SEARCH PID: #{pid}".green
+        log "use remove_pid('#{pid}') to stop if it doesn't end"
+        async_fn.call
+      end
+    else
+      async_fn.call
     end
   end
 
@@ -131,20 +144,19 @@ class App::Career::JobSearchEngine::Crunchbase
   def initialize
   end
 
-  # the same as #search but selects the first result instead
-  # of prompting for selection
-  def search!(query)
-    search(query, select_first: true)
+  # Shows index of results and prompts for selection
+  def search_sync(query, opts={})
+    search(query, {async: false, select_first: false, headless: true}.merge(opts))
   end
 
-  def search(query, select_first: false)
+  # Searches crunchbase, optionally async.
+  # :select_first must be true if :async is true
+  def search(query, async: true, select_first: true, headless: true)
     log! "searching crunchbase"
     img_path = nil
-    log "launching headless browser"
-    in_new_thread do |pid|
-      @pid = pid
-      log "CRUNCHBASE PID: #{pid}"
-      Headless.ly do
+    search_fn = Proc.new do
+      log "launching headless browser"
+      browser_fn = Proc.new do
         log "opening crunchbase search page"
         url = "https://www.crunchbase.com/app/search?query=#{URI.escape query}"
         @window = browser.new.open url
@@ -166,9 +178,25 @@ class App::Career::JobSearchEngine::Crunchbase
         log "getting results"
         img_path = get_results(select_first: select_first)
         window.close_all
-        img_path.tap &Launchy.method(:open)
+        log "IMAGE PATH: #{img_path}"
+        log "to open: Launchy.open('#{img_path}')"
         log "done", :green
+        img_path
       end
+      if headless
+        Headless.ly { browser_fn.call }
+      else
+        browser_fn.call
+      end
+    end
+    if async
+      in_new_thread do |pid|
+        @pid = pid
+        log "CRUNCHBASE PID: #{pid}"
+        search_fn.call
+      end
+    else
+      search_fn.call
     end
   end
 
