@@ -20,6 +20,8 @@ module App::PID
       pid = Thread.current.object_id
       add_pid(pid)
       blk.call(pid)
+      log "pid done: #{pid}"
+      remove_pid pid
     end
   end
 

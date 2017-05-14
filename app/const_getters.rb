@@ -6,4 +6,7 @@ module App::ConstGetters
   def browser; App::Browser; end
   def angel_list; App::Career::JobSearchEngine::AngelList; end
   def crunchbase; App::Career::JobSearchEngine::Crunchbase; end
+  def github; App::Career::JobSearchEngine::Github; end
+  def whos_hiring; App::Career::JobSearchEngine::WhosHiring; end
+  def stack_overflow; App::Career::JobSearchEngine::StackOverflow; end
 end

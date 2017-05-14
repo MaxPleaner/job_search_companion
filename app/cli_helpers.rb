@@ -155,6 +155,10 @@ module App::CliHelpers
     crunchbase.new.search_sync term, opts
   end
 
+  def search_github(query, location: 'san francisco')
+    github.new.search query, location: location
+  end
+
   # --------------------------------------------------
   # Private stuff
   # --------------------------------------------------

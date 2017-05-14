@@ -12,6 +12,8 @@ require 'dotenv'
 require 'yaml/store'
 require 'headless'
 require 'curb'
+require 'mechanize'
+
 # require 'selenium/webdriver/remote/http/curb'
 
 Dotenv.load
