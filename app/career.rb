@@ -155,7 +155,6 @@ class App::Career::JobSearchEngine::Crunchbase
     log! "searching crunchbase"
     img_path = nil
     search_fn = Proc.new do
-      log "launching headless browser"
       browser_fn = Proc.new do
         log "opening crunchbase search page"
         url = "https://www.crunchbase.com/app/search?query=#{URI.escape query}"
@@ -184,6 +183,7 @@ class App::Career::JobSearchEngine::Crunchbase
         img_path
       end
       if headless
+        log "launching headless browser"
         Headless.ly { browser_fn.call }
       else
         browser_fn.call
