@@ -159,6 +159,19 @@ module App::CliHelpers
     github.new.search query, location: location
   end
 
+  def search_stack_overflow(
+    query,
+    location: 'San Francisco, CA, United States',
+    distance: 20,
+    async: true
+  )
+    stack_overflow.new.search(query,
+      location: location,
+      distance: distance,
+      async: async
+    )
+  end
+
   # --------------------------------------------------
   # Private stuff
   # --------------------------------------------------

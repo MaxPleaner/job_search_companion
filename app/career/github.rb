@@ -1,4 +1,5 @@
 class App::Career::JobSearchEngine::Github
+
   def search(query, location:, async: true)
     param_string = {
       description: query,
@@ -19,6 +20,7 @@ class App::Career::JobSearchEngine::Github
       async_fn.call
     end
   end
+
   def process_results(results, query)
     log "creating #{results.length} jobs"
     results.each do |result|
@@ -31,4 +33,5 @@ class App::Career::JobSearchEngine::Github
     end
     log "done"
   end
+
 end
