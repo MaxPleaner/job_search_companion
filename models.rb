@@ -4,14 +4,6 @@ class Job
     format_attrs(attributes, %i{id title category})
   end
 
-  def valid?(*args)
-    result = super(*args)
-    unless result
-      log errors.full_messages.join(", "), :red
-    end
-    result
-  end
-
   include DataMapper::Resource
   property :id, Serial
   property :title, String, unique: true
