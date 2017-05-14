@@ -11,6 +11,7 @@ module App::PID
   end
 
   def pid_closed?(pid)
+    return unless pid # allow nil values to be passed to no effect
     !pids.include?(pid)
   end
 

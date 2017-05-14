@@ -68,6 +68,7 @@ GEM
     do_sqlite3 (0.10.17)
       data_objects (= 0.10.17)
     dotenv (2.2.1)
+    eventmachine (1.2.3)
     fastercsv (1.5.5)
     ffi (1.9.18)
     headless (2.3.1)
@@ -124,6 +125,7 @@ DEPENDENCIES
   datamapper
   dm-sqlite-adapter
   dotenv
+  eventmachine
   headless
   json
   launchy

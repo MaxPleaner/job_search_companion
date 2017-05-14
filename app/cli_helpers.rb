@@ -85,7 +85,7 @@ module App::CliHelpers
   def install(type=nil)
     installers.all.tap do |installers|
       selected = type ? { type: installers[type] } : installers
-      selected.values.map(&:get_script).each &method(:puts)
+      selected.values.map(&:get_script).each &method(:log)
     end
   end
 
@@ -96,14 +96,14 @@ module App::CliHelpers
         hit = search_results[idx]
         results[idx] = google_hit.new(hit)
         result = results[idx]
-        puts display_result(result, idx)
+        log display_result(result, idx)
       end
     end
     nil    
   end
 
   def pick(idx)
-    puts "selected: ##{idx}\n".yellow
+    log "selected: ##{idx}\n".yellow
     @selected_idx = idx
     @selected = results[idx]
     unless @selected.id
@@ -112,9 +112,9 @@ module App::CliHelpers
         update_selected(idx, existing_record)
       end
     end 
-    puts display_result(@selected, idx)
-    puts display_selected_result(@selected, idx)
-    puts selection_options 
+    log display_result(@selected, idx)
+    log display_selected_result(@selected, idx)
+    log selection_options 
   end
 
   def chrome(url=nil)
@@ -142,7 +142,7 @@ module App::CliHelpers
   end
 
   def search_angel_list(term)
-    angel_list.new.login.search term
+    angel_list.new.search term
   end
 
   # Displays first result

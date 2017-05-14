@@ -3,8 +3,8 @@ class App::Browser
   attr_reader :driver
 
   def initialize
-    @driver = Selenium::WebDriver.for :chrome,
-      http_client: Selenium::WebDriver::Remote::Http::Curb.new
+    @driver = Selenium::WebDriver.for :chrome
+      # http_client: Selenium::WebDriver::Remote::Http::Curb.new
   end
 
   def close

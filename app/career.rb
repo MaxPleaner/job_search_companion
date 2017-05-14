@@ -1,18 +1,15 @@
 class App::Career
   def self.apply_to_jobs
     while job = get_job_suggestion
-      puts job
-      puts job.abstract.blue
+      log job
+      log job.abstract.blue
     end
   end
 
   def self.get_job_suggestion
+
   end
 end
-
-class App::Career::JobSearch
-end
-
 
 class App::Career::JobSearchEngine
 
@@ -36,50 +33,66 @@ class App::Career::JobSearchEngine::AngelList
   include App::ConstGetters
   include App::PID
 
-  attr_reader :window
+  attr_reader :window, :pid
   def initialize
+    log "loading email and pass from .env"
     @email = ENV.fetch("AngelListEmail")
     @password = ENV.fetch("AngelListPassword")
-    @window = browser.new.open "http://angel.co/login"
+  end
+
+  def search(keyword, locations: nil, &callback)
+    log 'starting new thread and headless browser'
+    in_new_thread do |pid|
+      @pid = pid
+      log "ANGEL LIST SEARCH PID: #{pid}".green
+      Headless.ly do
+        log "opening angel.co"
+        @window = browser.new.open "http://angel.co/login"
+        login
+        locations ||= ["151282-San Francisco Bay Area, CA"]
+        query = CGI.escape({
+            "locations" => locations,
+            "keywords" => [keyword],
+        }.to_json)
+        log "entering query"
+        url = "https://angel.co/jobs#find/f!#{query}"
+        window.open url
+        log "looping over infinite scroll; use remove_pid('#{pid}') to stop if it doesn't end"
+        spam_infinite_scroll do
+          process_results(keyword)
+          callback&.call
+        end
+      end
+    end
   end
 
   def login
-    form = window.css("#new_user")[0]
+    form = @window.css("#new_user")[0]
+    log "finding login inputs"
     email_input = form.find_element(css: "#user_email")
     password_input = form.find_element(css: "#user_password")
     email_input.send_keys @email
     password_input.send_keys @password
+    log "submitting login form"
     form.submit
     self
   end
 
-  def search(keyword, locations: nil)
-    locations ||= ["151282-San Francisco Bay Area, CA"]
-    query = CGI.escape({
-        "locations" => locations,
-        "keywords" => [keyword],
-    }.to_json)
-    url = "https://angel.co/jobs#find/f!#{query}"
-    window.open url
-    spam_infinite_scroll do
-      process_results(keyword)
-    end
-  end
 
   private
 
   def spam_infinite_scroll(scroll_height: 9000, &callback)
     idx = 0
-    in_new_thread do |pid|
-      puts "ANGEL LIST INFINITE SCROLL PID: #{pid}".green
-      loop do
-        break if window.elem_exists? ".end_notice"
-        break if pid_closed?(pid)
-        window.script "scrollTo(0, #{scroll_height * (idx + 1)})"
-        idx += 1
-      end
-      callback.call
+    loop do
+      log "infinite scroll idx: #{idx}"
+      num_hits = window.script "return $('.browse_startups_table_row').length"
+      log "#{num_hits} hits"
+      break if pid_closed?(pid)
+      break if window.elem_exists? ".end_notice"
+      window.script "scrollTo(0, #{scroll_height * (idx + 1)})"
+      idx += 1
     end
+    callback&.call
   end
 
   def process_results(keyword)
@@ -91,7 +104,8 @@ class App::Career::JobSearchEngine::AngelList
         details: text
       )
     end.tap do |jobs|
-      puts "created #{jobs.length} jobs"
+      log "created #{jobs.length} jobs"
+      log "done", :green
     end
   end
 
@@ -111,7 +125,7 @@ class App::Career::JobSearchEngine::Crunchbase
 
   include App::ConstGetters
 
-  attr_reader :window
+  attr_reader :window, :pid
 
   def initialize
   end
@@ -123,23 +137,38 @@ class App::Career::JobSearchEngine::Crunchbase
   end
 
   def search(query, select_first: false)
+    log! "searching crunchbase"
     img_path = nil
-    Headless.ly do
-      url = "https://www.crunchbase.com/app/search?query=#{URI.escape query}"
-      @window = browser.new.open url
-      if window.elem_exists?("[aria-label='Proceed Anyway']")
-        btn = window.css("[aria-label='Proceed Anyway']")[0]
-        btn.click
+    log "launching headless browser"
+    in_new_thread do |pid|
+      @pid = pid
+      log "CRUNCHBASE PID: #{pid}"
+      Headless.ly do
+        log "opening crunchbase search page"
+        url = "https://www.crunchbase.com/app/search?query=#{URI.escape query}"
+        @window = browser.new.open url
+        log "checking for warning shown to mobile devices"
+        if window.elem_exists?("[aria-label='Proceed Anyway']")
+          log "proceeding to desktop version"
+          btn = window.css("[aria-label='Proceed Anyway']")[0]
+          btn.click
+        end
+        log "checking for search button"
+        if window.elem_exists? "[md-svg-icon='search']"
+          log "clicking search button"
+          window.css("[md-svg-icon='search']")[0].click
+        end
+        log "finding text input"
+        input = window.css("[aria-label^='Look up a specific company']").last
+        log "typing query"
+        input.send_keys "#{query}\n"
+        log "getting results"
+        img_path = get_results(select_first: select_first)
+        window.close_all
+        img_path.tap &Launchy.method(:open)
+        log "done", :green
       end
-      if window.elem_exists? "[md-svg-icon='search']"
-        window.css("[md-svg-icon='search']")[0].click
-      end
-      input = window.css("[aria-label^='Look up a specific company']").last
-      input.send_keys "#{query}\n"
-      img_path = get_results(select_first: select_first)
-      window.close_all
     end
-    img_path
   end
 
   private
@@ -160,14 +189,17 @@ class App::Career::JobSearchEngine::Crunchbase
       results[0]
     else
       (results.length-1).downto(0).each do |i|
-        puts "#{i}: #{results[i].text}"
+        log "#{i}: #{results[i].text}"
       end
-      puts "which result to select? (enter index) "
+      log "which result to select? (enter index) "
       num = gets.chomp.to_i
       results[num]
     end
+    log "clicking result"
     result.click
+    log "switching tab"
     window.switch_to_tab(-1)
+    log "taking screenshot"
     window.tmp_screenshot_path
   end
 end

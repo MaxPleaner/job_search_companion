@@ -5,7 +5,7 @@ class Job
   end
   include DataMapper::Resource
   property :id, Serial
-  property :title, String
+  property :title, String, unique: true
   property :details, Text
   property :category, String
   property :status, String

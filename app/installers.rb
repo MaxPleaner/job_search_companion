@@ -1,7 +1,7 @@
 class App::Installers
 
   def self.default_info
-    puts "run the following in shell".yellow
+    log "run the following in shell"
   end
 
   def self.all

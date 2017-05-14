@@ -12,7 +12,7 @@ require 'dotenv'
 require 'yaml/store'
 require 'headless'
 require 'curb'
-require 'selenium/webdriver/remote/http/curb'
+# require 'selenium/webdriver/remote/http/curb'
 
 Dotenv.load
 
@@ -26,6 +26,16 @@ end
 db_path = build_absolute_path("app.sqlite")
 DataMapper.setup(:default, "sqlite3://#{db_path}")
 
+def log(text, color=:yellow)
+  unless ENV["SilentMode"] == "true"
+    puts text.send(color)
+  end
+end
+
+def log!(text, color=:green)
+  log(text, color)
+end
+
 class App
 end
 
@@ -35,6 +45,8 @@ require './app/formatter.rb'
 require './app/text_document.rb'
 require './app/browser.rb'
 require './models.rb'
+
+RawSql = DataMapper.repository(:default).adapter
 
 require './app/career.rb'
 require_relative "./app/google.rb"
@@ -52,6 +64,7 @@ def autotest
   # tests.google_search
   # tests.selenium_form
   # tests.get_jobs_from_angellist
+  # tests.lookup_company_on_crunchbase
 rescue => e
   puts e
   puts e.message
