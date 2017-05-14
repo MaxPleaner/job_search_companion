@@ -3,12 +3,22 @@ class Job
   def inspect
     format_attrs(attributes, %i{id title category})
   end
+
+  def valid?(*args)
+    result = super(*args)
+    unless result
+      log errors.full_messages.join(", "), :red
+    end
+    result
+  end
+
   include DataMapper::Resource
   property :id, Serial
   property :title, String, unique: true
   property :details, Text
   property :category, String
   property :status, String
+  property :source, String
 
   has n, :job_links, 'JobLink',
     child_key: [:job_id],

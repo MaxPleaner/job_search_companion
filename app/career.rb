@@ -101,7 +101,8 @@ class App::Career::JobSearchEngine::AngelList
       Job.create(
         category: keyword,
         title: text.match(/(.+)\n/)[1],
-        details: text
+        details: text,
+        source: "angel_list"
       )
     end.tap do |jobs|
       log "created #{jobs.length} jobs"
