@@ -1,5 +1,5 @@
 class App::Career::JobSearchEngine::StackOverflow
-  def search(query, location:, distance:, async: true)
+  def search(query, location:, distance:, async: true, &callback)
     query_string = {
       q: query,
       location: CGI.escape(location),
@@ -10,7 +10,7 @@ class App::Career::JobSearchEngine::StackOverflow
       log "Fetching XML page"
       url = "http://stackoverflow.com/jobs/feed?#{query_string}"
       results = Nokogiri.parse Mechanize.new.get(url).body
-      process_results(results, query)
+      process_results(results, query, &callback)
     end
     if async
       in_new_thread do |pid|
@@ -21,7 +21,7 @@ class App::Career::JobSearchEngine::StackOverflow
       async_fn.call
     end
   end
-  def process_results(results, query)
+  def process_results(results, query, &callback)
     hits = results.xpath("//item")
     log "creating #{hits.length} jobs"
     jobs = hits.map do |hit|
@@ -37,6 +37,7 @@ class App::Career::JobSearchEngine::StackOverflow
       Job.create job
     end
     log "done", :green
+    callback&.call
     jobs
   end
 end

@@ -5,7 +5,7 @@ class App::Career::JobSearchEngine::WhosHiring
   attr_reader :window
   attr_reader :pid
 
-  def search(query, location:, async:, headless:)
+  def search(query, location:, async:, headless:, &callback)
     log "searching whos hiring"
     query_string = {
       location: CGI.escape(location),
@@ -16,7 +16,7 @@ class App::Career::JobSearchEngine::WhosHiring
       browser_fn = Proc.new do
         @window = browser.new.open url
         spam_infinite_loop
-        process_results(query)
+        process_results(query, &callback)
       end
       if headless
         Headless.ly { browser_fn.call }
@@ -52,15 +52,14 @@ class App::Career::JobSearchEngine::WhosHiring
     end
   end
 
-  def process_results(query)
+  def process_results(query, &callback)
     log "parsing DOM info for jobs"
     job_datas = window.css(".Item").map do |hit|
       job_title = hit.find_element(css: ".info [itemprop='title']").text
       company_name = hit.find_element(css: ".info h2").text
-      byebug
       location = hit.find_element(css: "[itemprop='addressLocality']")
       url = begin
-        hit.find_element(css: "a").attribute("href").value
+        hit.find_element(css: "a").attribute("href")
       rescue Selenium::WebDriver::Error::NoSuchElementError
         ""
       end 
@@ -74,6 +73,7 @@ class App::Career::JobSearchEngine::WhosHiring
     log "creating job records"
     jobs = job_datas.map &Job.method(:create)
     log "done", :green
+    callback&.call
     jobs
   end
 

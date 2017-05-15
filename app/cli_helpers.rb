@@ -4,6 +4,19 @@ module App::CliHelpers
 
   include App::PID
 
+  # # Searches all available sites for a term
+  # Not working flawlessly yet
+  #
+  # def search_all(term)
+  #   search_angel_list(term) do
+  #     search_whos_hiring(term) do
+  #       search_github(term) do
+  #         search_stack_overflow(term)
+  #       end
+  #     end
+  #   end
+  # end
+
   def results
     @results ||= {}
   end
@@ -149,42 +162,50 @@ module App::CliHelpers
     Process.detach pid
   end
 
-  def search_angel_list(term)
-    angel_list.new.search term
+  def search_angel_list(term, opts={}, &callback)
+    angel_list.new.search term, opts, &callback
   end
 
   # Displays first result
-  def search_crunchbase term, opts={}
-    crunchbase.new.search term, opts
+  def search_crunchbase term, opts={}, &callback
+    crunchbase.new.search term, opts, &callback
   end
 
   # Displays index of potential results and prompts for selection
-  def search_crunchbase_sync term, opts={}
-    crunchbase.new.search_sync term, opts
+  def search_crunchbase_sync term, opts={}, &callback
+    crunchbase.new.search_sync term, opts, &callback
   end
 
-  def search_github(query, location: 'san francisco')
-    github.new.search query, location: location
+  def search_github(query, opts={}, &callback)
+    opts = {location: "san francisco"}.merge opts
+    github.new.search query, opts, &callback
   end
 
   def search_stack_overflow(
     query,
-    location: 'San Francisco, CA, United States',
-    distance: 20,
-    async: true
+    opts={},
+    &callback
   )
+    opts = {
+      location: 'San Francisco, CA, United States',
+      distance: 20,
+      async: true
+    }.merge opts
+
     stack_overflow.new.search(query,
       location: location,
       distance: distance,
-      async: async
+      async: async,
+      &callback
     )
   end
 
-  def search_whos_hiring(query, location: "san francisco", async: true, headless: true)
+  def search_whos_hiring(query, location: "san francisco", async: true, headless: true, &callback)
     whos_hiring.new.search(query,
       location: location,
       async: async,
-      headless: headless
+      headless: headless,
+      &callback
     )
   end
 

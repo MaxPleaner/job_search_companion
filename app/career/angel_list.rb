@@ -40,7 +40,7 @@ class App::Career::JobSearchEngine::AngelList
       in_new_thread do |pid|
         @pid = pid
         log "ANGEL LIST SEARCH PID: #{pid}".green
-        log "use remove_pid('#{pid}') to stop if it doesn't end"
+        log "use remove_pid(#{pid}) to stop if it doesn't end"
         async_fn.call
       end
     else
@@ -65,10 +65,19 @@ class App::Career::JobSearchEngine::AngelList
 
   def spam_infinite_scroll(scroll_height: 9000, &callback)
     idx = 0
-    loop do
+    last_num_hits = nil
+    num_iterations_unchanged = 0
+    loop  do
       log "infinite scroll idx: #{idx}"
       num_hits = window.script "return $('.browse_startups_table_row').length"
       log "#{num_hits} hits"
+      if last_num_hits == num_hits
+        num_iterations_unchanged += 1
+      else
+        num_iterations_unchanged = 0
+      end
+      last_num_hits = num_hits
+      break if num_iterations_unchanged > 10
       break if pid_closed?(pid)
       break if window.elem_exists? ".end_notice"
       window.script "scrollTo(0, #{scroll_height * (idx + 1)})"

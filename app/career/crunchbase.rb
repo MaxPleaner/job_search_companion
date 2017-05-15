@@ -8,8 +8,8 @@ class App::Career::JobSearchEngine::Crunchbase
   end
 
   # Shows index of results and prompts for selection
-  def search_sync(query, opts={})
-    search(query, {async: false, select_first: false, headless: true}.merge(opts))
+  def search_sync(query, opts={}, &callback)
+    search(query, {async: false, select_first: false, headless: true}.merge(opts), &callback)
   end
 
   # Searches crunchbase, optionally async.

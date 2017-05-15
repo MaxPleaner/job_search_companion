@@ -1,6 +1,6 @@
 class App::Career::JobSearchEngine::Github
 
-  def search(query, location:, async: true)
+  def search(query, location:, async: true, &callback)
     param_string = {
       description: query,
       location: CGI.escape(location)
@@ -10,6 +10,7 @@ class App::Career::JobSearchEngine::Github
       url = "https://jobs.github.com/positions.json?#{param_string}"
       results = JSON.parse Mechanize.new.get(url).body
       process_results(results, query)
+      callback&.call
     end
     if async
       in_new_thread do |pid|
