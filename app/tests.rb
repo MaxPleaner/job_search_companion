@@ -22,4 +22,8 @@ class App::Tests
     search_crunchbase "pivotal"
   end
 
+  def self.start_applying_to_jobs
+    apply_to_jobs
+  end
+
 end

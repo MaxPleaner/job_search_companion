@@ -1,5 +1,6 @@
 module App::ConstGetters
   def installers; App::Installers; end
+  def career; App::Career; end
   def google; App::Google; end
   def screen_width; TermInfo.screen_width; end
   def google_hit; App::Google::Hit; end  

@@ -28,7 +28,7 @@ end
 db_path = build_absolute_path("app.sqlite")
 DataMapper.setup(:default, "sqlite3://#{db_path}")
 
-def log(text, color=:yellow)
+def log(text, color=:blue)
   unless ENV["SilentMode"] == "true"
     puts text.send(color)
   end
@@ -39,6 +39,19 @@ def log!(text, color=:green)
 end
 
 class App
+  def self.launch_new(cmd)
+    if ["\"", "\'"].any? { |str| cmd.include?(str) }
+      raise(RuntimeError, "
+        command cannot use \" or \' strings.
+        %{} or heredocs can be used instead
+      ")
+    end
+    system <<-SH
+      gnome-terminal -e "
+        pry -r ./app.rb -e 'load_helpers; #{cmd}'
+      "
+    SH
+  end
 end
 
 require './app/pid.rb'
@@ -67,6 +80,7 @@ def autotest
   # tests.selenium_form
   # tests.get_jobs_from_angellist
   # tests.lookup_company_on_crunchbase
+  tests.start_applying_to_jobs
 rescue => e
   puts e
   puts e.message

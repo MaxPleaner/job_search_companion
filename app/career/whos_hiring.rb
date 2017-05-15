@@ -57,9 +57,10 @@ class App::Career::JobSearchEngine::WhosHiring
     job_datas = window.css(".Item").map do |hit|
       job_title = hit.find_element(css: ".info [itemprop='title']").text
       company_name = hit.find_element(css: ".info h2").text
+      byebug
       location = hit.find_element(css: "[itemprop='addressLocality']")
       url = begin
-        hit.find_element(css: "a").attribute "href"
+        hit.find_element(css: "a").attribute("href").value
       rescue Selenium::WebDriver::Error::NoSuchElementError
         ""
       end 

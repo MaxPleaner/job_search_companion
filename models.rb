@@ -16,9 +16,26 @@ class Job
   include DataMapper::Resource
   add_patch_for_valid(self)
   include App::Formatter
-  def inspect
-    format_attrs(attributes, %i{id title category})
+
+  def self.applied
+    all status: "applied"
   end
+
+  def self.uninterested
+    all status: "uninterested"
+  end
+
+  def inspect
+    format_attrs(public_attributes, %i{id title category comments tags})
+  end
+
+  def public_attributes
+    attributes.merge(
+      comments: comments.map(&:inspect),
+      tags: tags.map(&:inspect)
+    )
+  end
+
   property :id, Serial
   property :title, String, unique: [:details], required: true
   property :details, Text
@@ -33,6 +50,15 @@ class Job
   has n, :pages, 'Page',
     through: :job_links,
     via: :page
+
+  has n, :comments, "Comment",
+    child_key: [:job_id],
+    parent_key: [:id]
+
+  has n, :tags, "Tag",
+    child_key: [:job_id],
+    parent_key: [:id]
+
 end
  
 class JobLink
@@ -115,10 +141,20 @@ class Tag
 
   property :id,         Serial
   property :page_id,      Integer
+  property :job_id, Integer
   property :name,       String
   property :created_at, DateTime
 
   belongs_to :page
+  belongs_to :job
+
+  def pages
+    Page.all(tags: [id: id])
+  end
+
+  def jobs
+    Job.all(tags: [id: id])
+  end
   
 end
 
@@ -127,17 +163,19 @@ class Comment
   include App::Formatter
 
   def inspect
-    format_attrs(attributes, %i{id})
+    format_attrs(attributes, %i{id content})
   end
 
   include DataMapper::Resource
   add_patch_for_valid(self)
   property :id,         Serial
   property :page_id,      Integer
+  property :job_id, Integer
   property :content,       String
   property :created_at, DateTime
 
   belongs_to :page
+  belongs_to :job
 
 end
 

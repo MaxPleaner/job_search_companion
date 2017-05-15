@@ -99,11 +99,12 @@ module App::CliHelpers
         log display_result(result, idx)
       end
     end
+    log "call 'pick(<index>) to choose a result", :green
     nil    
   end
 
   def pick(idx)
-    log "selected: ##{idx}\n".yellow
+    log "selected: ##{idx}\n".blue
     @selected_idx = idx
     @selected = results[idx]
     unless @selected.id
@@ -117,6 +118,14 @@ module App::CliHelpers
     log selection_options 
   end
 
+  def unpick
+    @selected = nil
+    results.each do |idx, result|
+      log display_result(result, idx)
+    end
+    nil
+  end
+
   def chrome(url=nil)
     browser.new.tap do |window|
       window.open url || get_selected.url
@@ -127,7 +136,6 @@ module App::CliHelpers
     lynx_config_file = ENV.fetch "LynxConfigFile", nil
     config_cmd = lynx_config_file ? "-cfg=#{lynx_config_file}" : ""
     url ||= get_selected.url
-    byebug
     ssl_config = "SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt"
     cmd = %{
       lynx \
@@ -180,6 +188,10 @@ module App::CliHelpers
     )
   end
 
+  def apply_to_jobs
+    career.apply_to_jobs
+  end
+
   # --------------------------------------------------
   # Private stuff
   # --------------------------------------------------
@@ -188,7 +200,8 @@ module App::CliHelpers
 
   def selection_options
     "
-      #{"The following commands can be used with the selection:".yellow}
+      #{"The following commands can be used with the selection:".blue}
+      #{"unpick".green}
       #{"chrome".green}
       #{"lynx".green}
       #{"save".green}
@@ -234,8 +247,7 @@ module App::CliHelpers
 
   def display_result(result, idx)
     "
-      (#{idx.to_s.red})
-
+      #{idx.to_s}
       #{result.title.green}
       #{result.url.blue}
       #{result.abstract.chomp}
@@ -246,10 +258,10 @@ module App::CliHelpers
     # includes a little more detail
     return "" unless @selected&.id
     "
-#{"Comments:".yellow}
+#{"Comments:".blue}
 #{result.comments.map(&:content).join("\n")}
 
-#{"Tags:".yellow}
+#{"Tags:".blue}
 #{result.tags.map(&:name).join("\n")}
     ".lchomp.chomp.strip_heredoc
   end

@@ -14,7 +14,7 @@ class App::Career::JobSearchEngine::Crunchbase
 
   # Searches crunchbase, optionally async.
   # :select_first must be true if :async is true
-  def search(query, async: true, select_first: true, headless: true)
+  def search(query, async: true, select_first: true, headless: true, &callback)
     log! "searching crunchbase"
     img_path = nil
     search_fn = Proc.new do
@@ -43,6 +43,7 @@ class App::Career::JobSearchEngine::Crunchbase
         log "IMAGE PATH: #{img_path}"
         log "to open: Launchy.open('#{img_path}')"
         log "done", :green
+        callback&.call(img_path)
         img_path
       end
       if headless
