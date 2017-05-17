@@ -209,8 +209,8 @@ module App::CliHelpers
     )
   end
 
-  def apply_to_jobs
-    career.apply_to_jobs
+  def apply_to_jobs(auto_open: true)
+    career.apply_to_jobs(auto_open: auto_open)
   end
 
   # --------------------------------------------------

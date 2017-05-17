@@ -30,6 +30,4 @@ gem 'selenium-webdriver'
 
 gem "headless"
 
-gem "curb"
-
 gem 'eventmachine'

@@ -2,7 +2,7 @@ class App::Career
 
   include App::ConstGetters
 
-  def self.apply_to_jobs
+  def self.apply_to_jobs(auto_open:)
     jobs = Job.all status: nil
     idx = 0
     loop do
@@ -10,6 +10,9 @@ class App::Career
       if !job
         log "out of jobs".red
         break
+      end
+      if auto_open
+        process_input(job, "gj")
       end
       log "num seen: #{idx}"
       result = prompt_for_job_update(job)

@@ -4,7 +4,6 @@ class App::Browser
 
   def initialize
     @driver = Selenium::WebDriver.for :chrome
-      # http_client: Selenium::WebDriver::Remote::Http::Curb.new
   end
 
   def close

@@ -1,3 +1,4 @@
 app.sqlite
 .byebug_history
 .env
+priv

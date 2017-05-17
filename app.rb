@@ -14,8 +14,6 @@ require 'headless'
 require 'curb'
 require 'mechanize'
 
-# require 'selenium/webdriver/remote/http/curb'
-
 Dotenv.load
 
 require_relative './patches.rb'
