@@ -33,7 +33,7 @@ situation-specific (see [app/cli_helpers.rb](./app/cli_helpers.rb) but generally
 creates `Job` records in DataMapper/SQLite.
 - `search_crunchbase "term"` takes a screenshot of the crunchbase page for a specific company.
 Also accepts the `async` and `headless` options as well as a callback. The callback is invoked
-with the local file path of the screenshot (a tempfile path).
+with the local file path of the screenshot (a tempfile path). This method isn't super useful but it's there anyway.
 - `apply_to_jobs` starts a repl that shows the jobs with a nil `status` column and prompts
 the user to take action, either by looking up more details, making a comment/tag, or updating
 the `status`. These options are printed in the REPL.
