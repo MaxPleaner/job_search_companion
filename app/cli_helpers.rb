@@ -140,7 +140,9 @@ module App::CliHelpers
   end
 
   def chrome(url=nil)
-    system "chromium-browser #{url || get_selected.url}"
+    Thread.new do
+      system "chromium-browser #{url || get_selected.url}"
+    end
     # browser.new.tap do |window|
     #   window.open url || get_selected.url
     # end
