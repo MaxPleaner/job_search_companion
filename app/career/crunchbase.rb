@@ -22,6 +22,7 @@ class App::Career::JobSearchEngine::Crunchbase
         log "opening crunchbase search page"
         url = "https://www.crunchbase.com/app/search?query=#{URI.escape query}"
         @window = browser.new.open url
+        byebug
         log "checking for warning shown to mobile devices"
         if window.elem_exists?("[aria-label='Proceed Anyway']")
           log "proceeding to desktop version"

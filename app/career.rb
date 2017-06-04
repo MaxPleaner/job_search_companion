@@ -3,7 +3,7 @@ class App::Career
   include App::ConstGetters
 
   def self.apply_to_jobs(auto_open:)
-    jobs = Job.all status: nil
+    jobs = Job.all(status: nil).shuffle
     idx = 0
     loop do
       job = jobs[idx]

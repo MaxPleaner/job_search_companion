@@ -140,9 +140,10 @@ module App::CliHelpers
   end
 
   def chrome(url=nil)
-    browser.new.tap do |window|
-      window.open url || get_selected.url
-    end
+    system "chromium-browser #{url || get_selected.url}"
+    # browser.new.tap do |window|
+    #   window.open url || get_selected.url
+    # end
   end
 
   def lynx(url=nil, useragent: "la policia L_y_n_x")
@@ -209,7 +210,7 @@ module App::CliHelpers
     )
   end
 
-  def apply_to_jobs(auto_open: true)
+  def apply_to_jobs(auto_open: false)
     career.apply_to_jobs(auto_open: auto_open)
   end
 
