@@ -17,6 +17,8 @@ class Job
   add_patch_for_valid(self)
   include App::Formatter
 
+  validates_uniqueness_of :title
+
   def self.applied
     all status: "applied"
   end
