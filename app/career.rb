@@ -43,7 +43,7 @@ class App::Career
           - #{"done".green} to stop apply_to_jobs
           - #{"n".green} to skip to next job
           - #{"p".green} to go back to previous job
-          - #{"a".green} to update status as 'applied' 
+          - #{"a".green} to update status as 'applied'
           - #{"u".green} to update status as 'uninterested'
           - #{"w".green} to wipe status (set it to nil)
           - #{"c".green} to add a comment

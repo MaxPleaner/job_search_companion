@@ -62,7 +62,7 @@ class App::Career::JobSearchEngine::WhosHiring
         hit.find_element(css: "a").attribute("href")
       rescue Selenium::WebDriver::Error::NoSuchElementError
         ""
-      end 
+      end
       {
         title: company_name,
         details: "#{job_title} - #{location} - #{url}",
