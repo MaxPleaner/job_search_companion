@@ -113,7 +113,7 @@ module App::CliHelpers
       end
     end
     log "call 'pick(<index>) to choose a result", :green
-    nil    
+    nil
   end
 
   def pick(idx)
@@ -125,10 +125,10 @@ module App::CliHelpers
       if existing_record
         update_selected(idx, existing_record)
       end
-    end 
+    end
     log display_result(@selected, idx)
     log display_selected_result(@selected, idx)
-    log selection_options 
+    log selection_options
   end
 
   def unpick

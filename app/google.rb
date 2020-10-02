@@ -35,7 +35,7 @@ class App::Google::Hit
     }.merge(!persisted? ? {} : {
       comments: comments,
       tags: tags,
-      linked: linked, 
+      linked: linked,
       linkbacks: linkbacks
     })
   end

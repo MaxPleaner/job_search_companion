@@ -15,7 +15,7 @@ end
 
 class App::Installers::Google
 
-  def self.get_script 
+  def self.get_script
     "
       sudo add-apt-repository ppa:twodopeshaggy/jarun
       sudo apt-get update
@@ -34,7 +34,7 @@ class App::Installers::ChromeDriver
       wget -N http://chromedriver.storage.googleapis.com/2.29/chromedriver_linux64.zip
       unzip chromedriver_linux64.zip
       rm chromedriver_linux64.zip
-      
+
       chmod +x chromedriver
 
       sudo mv -f chromedriver /usr/local/share/chromedriver
